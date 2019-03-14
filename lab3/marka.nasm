@@ -31,7 +31,7 @@ _start:
 	mov ax, 0x7e0
 	mov ds, ax
 	xor di, di
-	mov ax, 0x2020
+	mov ax, 0x1234
 	loop_str:
 		xor [di], ax
 		add di, 2
