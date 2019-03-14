@@ -23,7 +23,11 @@ int main(int argc, char* argv[])
 	ptr1=(char*)mmap(NULL, st.st_size, PROT_WRITE, MAP_SHARED, sd,0);
 	for (i=0; i<1048575; i++)
 	{
-		if (*((unsigned short*)(ptr+i))==*((unsigned short*)(ptr+510)))
+		if (*((unsigned short*)(ptr+i))==0x2020 && shelk==false)
+		{
+			*((unsigned short*)(ptr1+i))=gamma;
+		}
+		if (*((unsigned short*)(ptr+i))==0xaa55)//*((unsigned short*)(ptr+510)))
 		{
 			shelk=true;
 			printf("%i", i);
