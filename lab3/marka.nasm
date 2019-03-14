@@ -1,5 +1,5 @@
-BITS 16
-ORG 0x7c00
+[BITS 16]
+[ORG 0x7c00]
 
 _start:
 	;xor cx, cx
@@ -33,7 +33,7 @@ _start:
 	xor di, di
 	mov ax, 0x2020
 	loop_str:
-		sub [di], ax
+		xor [di], ax
 		add di, 2
 		loop loop_str
 	jmp 0:0x7e00

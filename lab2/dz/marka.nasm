@@ -1,6 +1,5 @@
-BITS 16
-ORG 0x7c00
-
+[BITS 16]
+[ORG 0x7c00]
 _start:
 	;xor cx, cx
 	;mov cx, 512
@@ -28,7 +27,7 @@ _start:
 	.m1:
 	xor cx, cx
 	mov cx, 512
-	mov ax, 0x7e00:0000
+	mov ax, 0x7e00
 	mov ds, ax
 	xor di, di
 	mov ax, 0x2020
