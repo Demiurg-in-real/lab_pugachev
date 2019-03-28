@@ -10,10 +10,9 @@
 #include<sys/mman.h>
 #include <stdbool.h>
 #include<stdlib.h>
-
+#include <time.h>
 //vstavil
-uint_least32_t Crc32(unsigned char *buf, size_t len);
-int razmer(int chislo, char argum);
+
 struct part {
 	uint8_t boot; //unsigned int - more universal
 	uint8_t chs[3];
@@ -28,7 +27,7 @@ struct mbr {
 	uint8_t sig[];
 }__attribute__((packed));
 struct mbr *mbr;
-mbr=(struct mbr*) ptr;
+/*mbr=(struct mbr*) ptr;
 mbr->(sig[0]=0xaa);
 mbr->sig[1]=0x55;
 mbr->P[0].type=0xee
@@ -36,28 +35,49 @@ mbr->P[0].lba=1;
 //mbr->P[0].size=st.st_size/512-1;
 mbr->P[0].chs[0]=0xFF;
 mbr->P[0].chs[1]=0xFF;
-mbr->P[0].chs[2]=0xFF;
+mbr->P[0].chs[2]=0xFF;*/
 
-
-//struct gpt {
+struct GPT_MADE {
+	uint8_t signature[8];
+	uint8_t revision[4];
+	uint8_t headersize[4];
+	uint8_t headercrc32[4];
+	uint8_t reserved[4];
+	uint8_t mylba[8];
+	uint8_t alternallba[8];
+	uint8_t firstuslba[8];
+	uint8_t lastuslba[8];
+	uint8_t uniqGUID[16];
+	uint8_t partentr[8];
+	uint8_t numbpart[4];
+	uint8_t sizepart[4];
+	uint8_t partentrCRC32[4];
+	uint8_t reserved2; //Может удалить? Оно нафиг не нужно, по сути. Места под этот резерв я не оставляю же
+} __attribute__((packed));
 	
-
-
+uint_least32_t Crc32(unsigned char *buf, size_t len);
+int razmer(int chislo, char *argum);
+void generate_GUID(struct GPT_MADE *vnes);
+	
+const uint8_t for_first_mbr[12]={0x02,0x00,0xee, 0x46, 0x05, 0x01, 0x01, 0x00,0x00,0x00, 0xff, 0x4f};
 
 int main(int argc, char* argv[])
 {
+	struct gpt *GPT;
 	int razm;
-	razm=razmer(razm, argv[1]);
+	char *figt=argv[1];
+	razm=razmer(razm, figt); //Не работает, хз почему, бред выдаёт...
 	int sd, i=0; struct stat st; short int *ptr;
 	sd=open(argv[1], O_RDWR);
 	fstat(sd,&st);
 	ptr=(unsigned short*)mmap(NULL, st.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, sd, 0);
+	//*((unsigned short*)((ptr+500))=(*((... // zapis
 	munmap(ptr, st.st_size);
 	close(sd);
 	return 0;
 }
 
-int razmer(int chislo, char argum)
+int razmer(int chislo, char *argum)
 {
 	FILE *magad=fopen(argum, "rb");
 	if (magad==NULL)
@@ -72,22 +92,38 @@ int razmer(int chislo, char argum)
 }
 uint_least32_t Crc32(unsigned char *buf, size_t len)
 {
-	    uint_least32_t crc_table[256];
-	        uint_least32_t crc; int i, j;
+	uint_least32_t crc_table[256];
+	uint_least32_t crc; int i, j;
+	for (i = 0; i < 256; i++)
+	{
+		crc = i;
+	        for (j = 0; j < 8; j++)
+		{
+			crc = crc & 1 ? (crc >> 1) ^ 0xEDB88320UL : crc >> 1;
+		}
+	        crc_table[i] = crc;
+	}
+	crc = 0xFFFFFFFFUL;
+	while (len--)
+	{
+		crc = crc_table[(crc ^ *buf++) & 0xFF] ^ (crc >> 8);
+	}
+	return crc ^ 0xFFFFFFFFUL;
+}
 
-		    for (i = 0; i < 256; i++)
-			        {
-					        crc = i;
-						        for (j = 0; j < 8; j++)
-								            crc = crc & 1 ? (crc >> 1) ^ 0xEDB88320UL : crc >> 1;
+void generate_GUID(struct GPT_MADE *vnes)
+{
+	srand((uint32_t) time(NULL));
+	unsigned char *stream=malloc(16);
+	size_t i;
+	for (i=0; i<16; i++)
+	{
+		stream[i]=rand();
+	}
+	for (i=0; i<16;i++)
+	{
+		vnes->uniqGUID[i]=stream[i];
+	}
 
-							        crc_table[i] = crc;
-								    };
-
-		        crc = 0xFFFFFFFFUL;
-
-			    while (len--)
-				            crc = crc_table[(crc ^ *buf++) & 0xFF] ^ (crc >> 8);
-
-			        return crc ^ 0xFFFFFFFFUL;
+	//return stream;
 }
