@@ -58,6 +58,7 @@ struct GPT_MADE {
 uint_least32_t Crc32(unsigned char *buf, size_t len);
 int razmer(int chislo, char *argum);
 void generate_GUID(struct GPT_MADE *vnes);
+void zabiv_structuri(); // dopravit
 	
 const uint8_t for_first_mbr[12]={0x02,0x00,0xee, 0x46, 0x05, 0x01, 0x01, 0x00,0x00,0x00, 0xff, 0x4f};
 
