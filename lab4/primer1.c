@@ -12,6 +12,19 @@
 #include<stdlib.h>
 
 //vstavil
+int razmer(int chislo, char argum)
+{
+	FILE *magad=fopen(argum, "rb");
+	if (magad==NULL)
+	{
+		printf("Something went wrong, please check it");
+		return (32);
+	}
+	fseek (magad, 0, SEEK_END);
+	chislo=ftell(magad);
+	fclose(magad);
+	return chislo;
+}
 
 struct part {
 	uint8_t boot; //unsigned int - more universal

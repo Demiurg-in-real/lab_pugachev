@@ -12,7 +12,8 @@
 #include<stdlib.h>
 
 //vstavil
-
+uint_least32_t Crc32(unsigned char *buf, size_t len);
+int razmer(int chislo, char argum);
 struct part {
 	uint8_t boot; //unsigned int - more universal
 	uint8_t chs[3];
@@ -37,8 +38,9 @@ mbr->P[0].size=st.st_size/512-1;
 
 
 
-int main()
+int main(int argc, char* argv[])
 {
+	int razm
 	int sd, i=0; struct stat st; short int *ptr;
 	sd=open(argv[1], O_RDWR);
 	fstat(sd,&st);
@@ -46,3 +48,39 @@ int main()
 	munmap(ptr, st.st_size);
 	close(sd);
 	return 0;
+}
+
+int razmer(int chislo, char argum)
+{
+	FILE *magad=fopen(argum, "rb");
+	if (magad==NULL)
+	{
+		printf("Something went wrong, check the code, pls");
+		return -555;
+	}
+	fseek(magad, 0, SEEK_END);
+	chislo=ftell(magad);
+	fclose(magad);
+	return chislo;
+}
+uint_least32_t Crc32(unsigned char *buf, size_t len)
+{
+	    uint_least32_t crc_table[256];
+	        uint_least32_t crc; int i, j;
+
+		    for (i = 0; i < 256; i++)
+			        {
+					        crc = i;
+						        for (j = 0; j < 8; j++)
+								            crc = crc & 1 ? (crc >> 1) ^ 0xEDB88320UL : crc >> 1;
+
+							        crc_table[i] = crc;
+								    };
+
+		        crc = 0xFFFFFFFFUL;
+
+			    while (len--)
+				            crc = crc_table[(crc ^ *buf++) & 0xFF] ^ (crc >> 8);
+
+			        return crc ^ 0xFFFFFFFFUL;
+}
