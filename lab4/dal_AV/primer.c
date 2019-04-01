@@ -40,13 +40,15 @@ struct zagolovok {
 int razmer(int chislo, char *argum);
 void generate_GUID(struct GPT_MADE *vnes);
 void zabiv_structuri(struct GPT_MADE *standartn, int RAZMER); 
-void zabiv_zagolovka(struct zagolovok *vbiv, int razme, uint8_t *chislo, int nomer);
+void zabiv_zagolovka(struct zagolovok *vbiv, int razme, uint8_t chislo, int nomer);
+void sborka(struct zagolovok *vb, struct GPT_MADE *st, int razmer, char *nechto);
+void generate_GUID1(struct zagolovok *vnis); 
 	
 const uint8_t for_first_mbr[12]={0x02,0x00,0xee, 0x46, 0x05, 0x01, 0x01, 0x00,0x00,0x00, 0xff, 0x4f};
 
 int main(int argc, char* argv[])
 {
-	struct GPT_MADE *GPT;
+		struct GPT_MADE *GPT;
 	struct zagolovok *MADEN;
 	int razm, ig=1;
 	char *figt=argv[1]; uint8_t *figt1=argv[2];
@@ -62,13 +64,6 @@ int main(int argc, char* argv[])
 	close(sd);
 	return 0;
 }
-int write_in(struct GPT_MADE *poehal, uint8_t schet, int razmer)
-{
-	int sd,i=0; struct stat st; uint8_t *ptr;
-	sd=open(namef, O_RDWR);
-	fstat(sd, &st);
-	ptr=(uint8_t*)mmap(NULL, st.st_size, PROT_HEAD | PROT_WRITE, MAP_SHARED, sd.0);
-} //
 int razmer(int chislo, char *argum)
 {
 	FILE *magad=fopen(argum, "rb");
@@ -124,6 +119,21 @@ void generate_GUID(struct GPT_MADE *vnes) //Генерирую и сразу з�
 		vnes->uniqGUID[i]=stream[i];
 	}
 }
+void generate_GUID1(struct zagolovok *vnis) //Генерирую и сразу заполняю GUID
+{
+	srand((uint32_t) time(NULL));
+	unsigned char *stream=malloc(16);
+	size_t i;
+	for (i=0; i<16; i++)
+	{
+		stream[i]=rand();
+	}
+	for (i=0; i<16;i++)
+	{
+		vnis->uniqGUID[i]=stream[i];
+	}
+}
+
 void zabiv_structuri(struct GPT_MADE *standartn, int RAZMER) //Заполняю основные данные GPT, кроме CRC32, GUID и таблицы разделов диска
 {
 	char sign[8]={0x45, 0x46, 0x49, 0x20, 0x50, 0x41, 0x52, 0x54};
@@ -161,12 +171,12 @@ void zabiv_structuri(struct GPT_MADE *standartn, int RAZMER) //Заполняю 
 		standartn->lastuslba[i]=LLBA[i];
 		standartn->partentr[i]=pentr[i];
 	}
-	generate_GUID(standartn);
+	generate_GUID1(standartn);
 }
-void zabiv_zagolovka(struct zagolovok *vbiv, int razme, uint8_t *chislo, int nomer)
+void zabiv_zagolovka(struct zagolovok *vbiv, int razme, uint8_t chislo, int nomer)
 {
 	char ptype[16]={0x28, 0x73, 0x2a, 0xc1, 0x1f, 0xf8, 0xd2, 0x11, 0xba, 0x4b, 0x00, 0xa0, 0xc9, 0x3e, 0xc9, 0x3b};
-	generate_GUID(vbiv);
+	generate_GUID1(vbiv);
 	char firlba[8]={};int raz1=((razme/chislo)*nomer);
 	char enlba[8]={}; int raz2=((razme/chislo+1)*nomer);
 	for(int i=0;i<16;i++)
@@ -188,5 +198,129 @@ void zabiv_zagolovka(struct zagolovok *vbiv, int razme, uint8_t *chislo, int nom
 	{
 		vbiv->name[i]=0x00;
 	}
+}	
+void sborka(struct zagolovok *vb, struct GPT_MADE *st, int razmer, char *nechto)
+{
+	int sd, i=0,y=0; struct stat st1; uint8_t *ptr;
+	bool MbR=true, mainrazd=false,razd1=false,razd2=false,razd3=false, razd4=false, razd5=false,razd6=false,razd7=false,razd8=false;
+	sd=open(nechto, O_RDWR);
+	fstat(sd, &st1);
+	ptr=(uint8_t*)mmap(NULL, st1.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, sd,0);
+	for (i=0; i<razmer; i++)
+	{
+		if (i==448 && MbR)// Записываю стандартную запись защитного мбр раздела
+		{
+			*((uint8_t*)(ptr+i))=for_first_mbr[y];
+			y++;
+			if (y==16)
+			{
+				y=0;
+				MbR=false;
+			}
+		}
+		if (i==510)//Закончил с защитным мбр разделом
+		{
+			*((uint8_t*)(ptr+i))=0x55;
+			i++;
+			*((uint8_t*)(ptr+i))=0xaa;
+			mainrazd=true;
+		}
+		if (mainrazd)
+		{
+			if (razd1)
+			{
+				*((uint8_t*)(ptr+i))=st->signature[y];
+				y++;
+				if (y==8)
+				{
+					razd1=false;
+					y=0;
+					razd2=true;
+				}
+			}
+			if(razd2)
+			{
+				*((uint8_t*)(ptr+i))=st->revision[y];
+				y++;
+				if (y==4)
+				{
+					razd2=false;
+					y=0;
+					razd3=true;
+				}
+			}
+			if (razd3)
+			{
+				*((uint8_t*)(ptr+i))=st->headersize[y];
+				y++;
+				if(y==4)
+				{
+					razd3=false;
+					y=0;
+					razd4=true;
+					i+=4;
+				}
+			}
+			if (razd4)
+			{
+				*((uint8_t*)(ptr+i))=st->reserved[y];
+				y++;
+				if (y==4)
+				{
+					razd4=false;
+					y=0;
+					razd5=true;
+				}
+			}
+			if (razd5)
+			{
+				*((uint8_t*)(ptr+i))=st->mylba[y];
+				*((uint8_t*)(ptr+i+8))=st->alternallba[y];
+				*((uint8_t*)(ptr+i+16))=st->firstuslba[y];
+				*((uint8_t*)(ptr+i+24))=st->lastuslba[y];
+				y++;
+				if (y==8)
+				{
+					razd5=false;
+					y=0;
+					i+=24;
+					razd6=true;
+				}
+			}
+			if(razd6)
+			{
+				*((uint8_t*)(ptr+i))=st->uniqGUID[y];
+				y++;
+				if(y==16)
+				{
+					razd6=false;
+					y=0;
+					razd7=true;
+				}
+			}
+			if(razd7)
+			{
+				*((uint8_t*)(ptr+i))=st->partentr[y];
+				y++;
+				if (y==8)
+				{
+					razd7=false;
+					y=0;
+					razd8=true;
+				}
+			}
+			if (razd8)
+			{
+				*((uint8_t*)(ptr+i))=st->numbpart[y];
+				*((uint8_t*)(ptr+i+4))=st->sizepart[y];
+				y++;
+				if(y==4)
+				{
+					razd8=false;
+					y=0;
+					i+=8;
+				}
+			}
+		}
+	}
 }
-
