@@ -18,7 +18,7 @@ _start:
 	;mov dl, 0
 	mov dh,0
 	mov bx, 0x7e00
-	mov ax, 0x0202
+	mov ax, 0x1234
 	;int 0x10
 	int 0x13
 	jnc .m1

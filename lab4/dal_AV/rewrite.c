@@ -11,6 +11,7 @@ int main()
 	fseek(f, 0 , SEEK_END);
 	int razmer=ftell(f);
 	fseek(f,0,SEEK_SET);
+	printf("%i\n",razmer);
 	uint8_t chisl=0x00;
 	for (int y=0; y<razmer; y++)
 	{
