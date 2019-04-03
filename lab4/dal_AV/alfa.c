@@ -85,8 +85,8 @@ void format_GPT(struct GPT gpt)
 }
 void format_razdel(struct razdel raz)
 {
-	raz->typeGUID[0]=;
-	raz->typeGUID[1]=;
+	raz->typeGUID[0]=0xc12a7328;
+	raz->typeGUID[1]=0x11d2f81f;
 	raz->typeGUID[2]=;
 	raz->typeGUID[3]=;
 	uint32_t smesh;
