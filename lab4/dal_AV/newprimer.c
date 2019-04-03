@@ -10,7 +10,7 @@
 //#include<time.h>
 int main(int argc, char* argv[])
 {
-	int sd, i=0; struct stat st; uint64_t *ptr, a=65615;
+	int sd, i=0; struct stat st; uint64_t *ptr, a=65616;
 	sd=open(argv[1], O_RDWR);
 	fstat(sd, &st);
 	ptr=(uint64_t*)mmap(NULL,st.st_size, PROT_READ | PROT_WRITE, MAP_SHARED,sd,0);
