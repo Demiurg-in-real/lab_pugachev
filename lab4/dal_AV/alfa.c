@@ -9,7 +9,13 @@
 //#include<io.h>
 struct mbr
 {
+	uint32_t aktiv_nach_cil;
+	uint32_t type_be_end;
+	uint32_t absolute_LBA;
+	uint32_t size_sectors;
+}__attribute__((packed));
 //в число секторов в лба в конце защитного мбр пишется (кол-во секторов на самом файле-1)
+//(type_be_end - номер головки диска на которой заканчивается раздел и номер цилиндра и сектора, на котором заканчивается раздел - можно записать =0x00 все
 struct GPT
 {
 	uint32_t signature[2];
@@ -27,11 +33,15 @@ struct GPT
 	uint32_t Partitioncrc32[2];
 	uint32_t reserved2[105];
 } __attribute__((packed));
-	
-void right_swap(char *file1, char *file2);
+void format_MBR();
+void format_GPT();
+void crc32();
+void format_razdel();
+void guid();
+void zapis();
+//void right_swap(char *file1, char *file2);
 int main(int argc, char* argv[])
 {
-	right_swap(argv[1], argv[2]);
 	return 0;
 }
 /*void right_swap(char *file1, char *file2)

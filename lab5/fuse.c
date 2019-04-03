@@ -68,7 +68,7 @@ static int read_callback(const char *path, char *buf, size_t size, off_t offset,
 static struct fuse_operations fuse_example_operations = {
   .getattr = getattr_callback,      //почему через точку?
   .open = open_callback,
-  .read = read_callback,qqQqqqQqqqq
+  .read = read_callback,//qqQqqqQqqqq
   .readdir = readdir_callback,
 };
 

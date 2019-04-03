@@ -9,7 +9,7 @@ int main()
 		return 0;
 	}
 	fseek(f, 0 , SEEK_END);
-	int razmer=ftell(f);
+	int razmer=ftell(f)+1000000;
 	fseek(f,0,SEEK_SET);
 	printf("%i\n",razmer);
 	uint8_t chisl=0x00;
