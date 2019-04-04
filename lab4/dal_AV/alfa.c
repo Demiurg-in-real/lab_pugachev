@@ -206,4 +206,24 @@ void zapis()//so schetom dovedi do uma
 	munmap(ptr2,st.st_size);
 	close(openf);
 }
+int reaD()
+{
+	FILE *openf=fopen(file1, "rb+");uint8_t *chit, numb1=0;
+	if(openf==NULL)
+	{
+		printf("Pshol nah");
+		return 0;
+	}
+	fseek(openf,512, SEEK_SET);
+	for (int i=0;i<number;i++)
+	{
+		if(shelk)
+		{
+			for (int y=0;y<512;y++)
+			{
+				gptstr[y]=fread(&chit,sizeof(uint8_t), 1, openf);
+			}
+			shelk=false;
+		}
+		for (int y=0; y<128
 //ne hvataet рассчёта crc32 и дозаписи в конце (ну это уже через fopen сделаю, хер ли мудачиться просто такё
