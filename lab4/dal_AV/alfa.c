@@ -208,7 +208,7 @@ void zapis()//so schetom dovedi do uma
 }
 int reaD()
 {
-	FILE *openf=fopen(file1, "rb+");uint8_t *chit, numb1=0;
+	FILE *openf=fopen(file1, "rb+");uint32_t *chit, numb1=0, massive[number][128];
 	if(openf==NULL)
 	{
 		printf("Pshol nah");
@@ -221,9 +221,17 @@ int reaD()
 		{
 			for (int y=0;y<512;y++)
 			{
-				gptstr[y]=fread(&chit,sizeof(uint8_t), 1, openf);
+				gptstr[y]=fread(&chit,sizeof(uint32_t), 1, openf);
 			}
 			shelk=false;
 		}
-		for (int y=0; y<128
+		for (int y=0; y<128/4)
+		{
+			massive[i][y]=fread(&chit, sizof(uint32_t),1,openf);
+		}
+	}
 //ne hvataet рассчёта crc32 и дозаписи в конце (ну это уже через fopen сделаю, хер ли мудачиться просто такё
+
+	gptstr[некоторое]=uint32_t crc32(massive);
+	gptstr[некот]=uint32_t crc3w(gptstr);
+
