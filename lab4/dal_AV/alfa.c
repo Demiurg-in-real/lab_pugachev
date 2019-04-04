@@ -45,10 +45,11 @@ struct razdel
 
 void format_MBR();//done
 void format_GPT();//done
-void crc32();//done
+uint32_t crc32();//done
 void format_razdel();//done
 uint32_t  guid();//done
-void zapis();
+void zapis();//done
+void 
 //void right_swap(char *file1, char *file2);
 int main(int argc, char* argv[])
 {
@@ -149,24 +150,27 @@ void zapis()//so schetom dovedi do uma
 	schet=512;
 	*((uint32_t*)(ptr1+schet-2))=0xaa55;
 	*((uint32_t*)(ptr1+schet))=Gpt->signature[0];
-	*((uint32_t*)(ptr1+schet))=Gpt->signature[1];
-	*((uint32_t*)(ptr1+schet))=Gpt->zagolovok;
-	*((uint32_t*)(ptr1+schet))=Gpt->reserved;
-	*((uint32_t*)(ptr1+schet))=Gpt->Mylba[0];
-	*((uint32_t*)(ptr1+schet))=Gpt->Mylba[1];
-	*((uint64_t*)(ptr2+schet))=Gpt->Alternallba;
-	*((uint64_t*)(ptr2+schet))=Gpt->Firstusablelba;
-	*((uint64_t*)(ptr2+schet))=Gpt->Lastusablelba;
+	*((uint32_t*)(ptr1+schet+4))=Gpt->signature[1];
+	*((uint32_t*)(ptr1+schet+8))=Gpt->zagolovok;
+	*((uint32_t*)(ptr1+schet+12))=Gpt->size_zagolovok;
+	*((uint32_t*)(ptr1+schet+20))=Gpt->reserved;
+	*((uint32_t*)(ptr1+schet+24))=Gpt->Mylba[0];
+	*((uint32_t*)(ptr1+schet+28))=Gpt->Mylba[1];
+	*((uint64_t*)(ptr2+schet+32))=Gpt->Alternallba;
+	*((uint64_t*)(ptr2+schet+40))=Gpt->Firstusablelba;
+	*((uint64_t*)(ptr2+schet+48))=Gpt->Lastusablelba;
 	//*((uint32_t*)(ptr1+schet))=Gpt->
+	schet+=56;
 	for(int i=0;i<4;i++)
 	{
 		*((uint32_t*)(ptr1+schet))=Gpt->DiskGUID[i];
 		schet+=4;
 	}
 	*((uint32_t*)(ptr1+schet))=Gpt->Partitionlba[0];
-	*((uint32_t*)(ptr1+schet))=Gpt->Partitionlba[1];
-	*((uint32_t*)(ptr1+schet))=Gpt->numberofpart;
-	*((uint32_t*)(ptr1+schet))=Gpt->sizeofpart;
+	*((uint32_t*)(ptr1+schet+4))=Gpt->Partitionlba[1];
+	*((uint32_t*)(ptr1+schet+8))=Gpt->numberofpart;
+	*((uint32_t*)(ptr1+schet+12))=Gpt->sizeofpart;
+	schet+=16;
 	for (int i=0; i<105;i++)
 	{
 		*((uint32_t*)(ptr1+schet))=Gpt->reserved2[i];
@@ -184,14 +188,22 @@ void zapis()//so schetom dovedi do uma
 			*((uint32_t*)(ptr1+schet+16))=Raz->UniqueGUID[i];
 			schet+=4;
 		}
-		*((uint32_t*)(ptr1+schet))=Raz->startLBA;
-		*((uint32_t*)(ptr1+schet))=Raz->endLBA;
+		*((uint64_t*)(ptr2+schet))=Raz->startLBA;
+		schet+=8;
+		*((uint64_t*)(ptr2+schet))=Raz->endLBA;
+		schet+=8;
 		*((uint32_t*)(ptr1+schet))=Raz->attributes[0];
+		schet+=4
 		*((uint32_t*)(ptr1+schet))=Raz->attributes[1];
+		schet+=4
 		for(int y=0;y<18;y++)
 		{
 			*((uint32_t*)(ptr1+schet))=Raz->typerazd[i];
+			schet+=4;
 		}
 	}
+	munmap(ptr1,st.st_size);
+	munmap(ptr2,st.st_size);
+	close(openf);
 }
 //ne hvataet рассчёта crc32 и дозаписи в конце (ну это уже через fopen сделаю, хер ли мудачиться просто такё
