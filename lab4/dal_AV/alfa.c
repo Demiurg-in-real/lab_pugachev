@@ -6,7 +6,6 @@
 #include<sys/stat.h>
 #include<stdlib.h>
 #include<stdint.h>
-//#include<io.h>
 struct form_MBR
 {
 	uint32_t aktiv_nach_cil;
@@ -38,29 +37,29 @@ struct razdel
 {
 	uint32_t typeGUID[4];
 	uint32_t uniqueGUID[4];
-	uint32_t startLBA[2];
-	uint32_t endLBA[2];
+	uint64_t startLBA;
+	uint64_t endLBA;
 	uint32_t attributes[2];
 	uint32_t typeofRazd[18];
 }__attribute__((packed));
 
-void format_MBR();
-void format_GPT();
-void crc32();
-void format_razdel();
-uint32_t  guid();
+void format_MBR();//done
+void format_GPT();//done
+void crc32();//done
+void format_razdel();//done
+uint32_t  guid();//done
 void zapis();
 //void right_swap(char *file1, char *file2);
 int main(int argc, char* argv[])
 {
 	return 0;
 }
-void format_MBR(struct form_MBR *mbr)
+void format_MBR(uct form_MBR *mbr)
 {
 	mbr->activ_nach_cil=0x00020000;
-	mbr->type_be_end=0x000000ee;
+	mbr->type_be_end=0xffffffee;
 	mbr->absoluteLBA=0x00000001;
-	mbr->size_sectors //дома допридумать
+	mbr->size_sectors=(razmer/512-1); //вроде верно
 }
 void format_GPT(struct GPT gpt)
 {
@@ -71,9 +70,9 @@ void format_GPT(struct GPT gpt)
 	gpt->reserved=0x00000000;
 	gpt->Mylba[0]=0x00000001;
 	gpt->Mylba[1]=0x00000000;
-	gpt->Alternatelba=;
-	gpt->Firstusablelba=;
-	gpt->Lastusablelba=;
+	gpt->Alternatelba=(razmer/512-1);
+	gpt->Firstusablelba=0x800;
+	gpt->Lastusablelba=(razmer/512-33);
 	gpt->Partitionlba[0]=0x00000002;
 	gpt->Partitionlba[1]=0x00000000;
 	gpt->numberofpartent=0x00000080;
@@ -82,78 +81,117 @@ void format_GPT(struct GPT gpt)
 	{
 		gpt->reserved2[i]=0x00000000;
 	}
+	for(int i=0;i<4; i++)
+	{
+		guid(nas);
+		gpt->uniqueGUID[i]=nas;
+	}
 }
 void format_razdel(struct razdel raz)
 {
 	raz->typeGUID[0]=0xc12a7328;
 	raz->typeGUID[1]=0x11d2f81f;
-	raz->typeGUID[2]=;
-	raz->typeGUID[3]=;
+	raz->typeGUID[2]=0xa0004bba;
+	raz->typeGUID[3]=0x3bc93ec9;
 	uint32_t smesh;
 	for(int i=0; i<4; i++)
 	{
 		guid(smesh);
 		raz->uniqueGUID[i]=smesh;
 	}
-
-}	
-/*void right_swap(char *file1, char *file2)
-{
-	int x,y,z,schet=0,const1=1024, value=const1,openf;
-	unsigned char *ptr, pixels[1024][1024][3], a,b,c,d;
-	struct stat st;
-	openf=open(file1, O_RDONLY);
-	fstat(openf, &st);
-	ptr=(uint8_t*)mmap(NULL, st.st_size, PROT_READ , MAP_PRIVATE, openf, 0);
-	for (x=0;x<1024;x++)
+	raz->startlba=nachalo; //!!!
+	raz->endlba=konec;
+	raz->attributes[0]=0x00;
+	raz->attributes[1]=0x00;
+	for (int i=0;i<18;i++)
 	{
-		for (y=0; y<1024;y++)
-		{
-			for (z=0; z<3;z++)
-			{
-				pixels[x][y][z]=*((uint8_t*)(ptr+56670+schet));
-				schet++;
-				//printf("1");
-			}
-			//printf("2");
-		}
-		printf("%i\n", schet);
-	}// заканчивает цикл и программу тошнит ошибкой сегментирования. Просто хз что делать
-	//printf("4");//вот этот момент программа уже не выполняет, заканчивая цикл вылетает с ошибкой
-	munmap(ptr, st.st_size);
-	close(openf);
-	//printf("5");
-	for(x=0; x<512; x++)
-	{
-		for(y=0;y<(const1-1);y++)
-		{
-			for (z=0;z<3;z++)
-			{
-				a=pixels[x][y][z];
-				b=pixels[y][const1][z];
-				c=pixels[const1][value][z];
-				d=pixels[value][x][z];
-				pixels[x][y][z]=b;
-				pixels[y][const1][z]=c;
-				pixels[const1][value][z]=d;
-				pixels[value][x][z]=a;
-			}
-		}
+		raz->typeofrazd[i]=array1[i];
 	}
-	schet=0;
-	openf=open(file2, O_WRONLY | O_CREAT, S_IWRITE | S_IREAD);
-	fstat(openf, &st);
-	ptr=(uint8_t*)mmap(NULL, st.st_size, PROT_WRITE, MAP_SHARED, openf,1);
-	for(x=0;x<1024;x++)
+
+}
+void guid()
+{
+	srand((uint32_t)time(NULL));
+	uint32_t generate=randint();
+	return generate;
+}
+
+unsigned int crc32b(unsigned char *message) 
+{
+	int i, j;
+	unsigned int byte, crc, mask;
+	i = 0;
+	crc = 0xFFFFFFFF;
+	while (message[i] != 0)
 	{
-		for(y=0;y<1024;y++)
+		byte = message[i];           
+		crc = crc ^ byte;
+		for (j = 7; j >= 0; j--)
 		{
-			for(z=0;z<3;z++)
-			{
-				//a=pixels[x][y][z];
-				*((uint8_t*)(ptr+schet))=pixels[x][y][z];
-				schet++;
-			}
+			mask = -(crc & 1);
+			crc = (crc >> 1) ^ (0xEDB88320 & mask);
+		}
+		i= i + 1;
+	}
+	return ~crc;
+}
+void zapis()//so schetom dovedi do uma
+{
+	uint32_t *ptr1,*ptr2; int openf,schet=0x1be; struct stat st;
+	openf=open(file,O_RDWR);
+	fstat(openf,&st);
+	ptr1=(uint32_t*)mmap(NULL, st.st_size,PROT_READ|PROT_WRITE, MAP_SHARED, openf,0);
+	ptr2=(uint64_t*)mmap(NULL, st.st_size, PROT_READ|PROT_WRITE, MAP_SHARED,openf,0);
+	*((uint32_t*)(ptr1+schet))=Mbr->aktiv_nach_cil;
+	*((uint32_t*)(ptr1+schet+4))=Mbr->type_be_end;
+	*((uint32_t*)(ptr1+schet+8))=Mbr->absolute_LBA;
+	*((uint32_t*)(ptr1+schet+12))=Mbr->size_sectors;
+	schet=512;
+	*((uint32_t*)(ptr1+schet-2))=0xaa55;
+	*((uint32_t*)(ptr1+schet))=Gpt->signature[0];
+	*((uint32_t*)(ptr1+schet))=Gpt->signature[1];
+	*((uint32_t*)(ptr1+schet))=Gpt->zagolovok;
+	*((uint32_t*)(ptr1+schet))=Gpt->reserved;
+	*((uint32_t*)(ptr1+schet))=Gpt->Mylba[0];
+	*((uint32_t*)(ptr1+schet))=Gpt->Mylba[1];
+	*((uint64_t*)(ptr2+schet))=Gpt->Alternallba;
+	*((uint64_t*)(ptr2+schet))=Gpt->Firstusablelba;
+	*((uint64_t*)(ptr2+schet))=Gpt->Lastusablelba;
+	//*((uint32_t*)(ptr1+schet))=Gpt->
+	for(int i=0;i<4;i++)
+	{
+		*((uint32_t*)(ptr1+schet))=Gpt->DiskGUID[i];
+		schet+=4;
+	}
+	*((uint32_t*)(ptr1+schet))=Gpt->Partitionlba[0];
+	*((uint32_t*)(ptr1+schet))=Gpt->Partitionlba[1];
+	*((uint32_t*)(ptr1+schet))=Gpt->numberofpart;
+	*((uint32_t*)(ptr1+schet))=Gpt->sizeofpart;
+	for (int i=0; i<105;i++)
+	{
+		*((uint32_t*)(ptr1+schet))=Gpt->reserved2[i];
+		schet+=4;
+	}
+	for (int i=0;i<number; i++)
+	{
+		Razmer=(razmer/512)/number;
+		razmer1=2048+(Razmer+1)*i;
+		razmer2=2048+Razmer*(i+1);
+		format_razdel(razmer1,razmer2);	
+		for(int y=0;y<4;y++)
+		{
+			*((uint32_t*)(ptr1+schet))=Raz->typeGUID[i];
+			*((uint32_t*)(ptr1+schet+16))=Raz->UniqueGUID[i];
+			schet+=4;
+		}
+		*((uint32_t*)(ptr1+schet))=Raz->startLBA;
+		*((uint32_t*)(ptr1+schet))=Raz->endLBA;
+		*((uint32_t*)(ptr1+schet))=Raz->attributes[0];
+		*((uint32_t*)(ptr1+schet))=Raz->attributes[1];
+		for(int y=0;y<18;y++)
+		{
+			*((uint32_t*)(ptr1+schet))=Raz->typerazd[i];
 		}
 	}
 }
+//ne hvataet рассчёта crc32 и дозаписи в конце (ну это уже через fopen сделаю, хер ли мудачиться просто такё
