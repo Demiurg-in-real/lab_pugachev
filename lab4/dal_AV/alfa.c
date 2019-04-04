@@ -120,7 +120,7 @@ void guid()
 unsigned int crc32b(unsigned char *message) 
 {
 	int i, j;
-	unsigned int byte, crc, mask;
+	uint32_t byte, crc, mask;
 	i = 0;
 	crc = 0xFFFFFFFF;
 	while (message[i] != 0)
@@ -205,6 +205,45 @@ void zapis()//so schetom dovedi do uma
 	munmap(ptr1,st.st_size);
 	munmap(ptr2,st.st_size);
 	close(openf);
+	read();
+	del(openf);
+	FILE *openf=fopen(file, "rb+");
+	if(opnef==NULL)
+	{
+		printf("Daleko zashol, no poshol nahui");
+		return 0;
+	}
+	unsigned int *wr;
+	fseek(openf,512,SEEK_SET);
+	for (int y=0; y<512; y++)
+	{
+		wr=gptmas[y];
+		fwrite(&wr, sizeof(uint32_t),1,openf);
+	}
+	for (int i=0; i<number;i++)
+	{
+		for (int y=0; y<128; y++)
+		{
+			wr=massive[i][y];
+			fwrite(&wr, sizeof(uint32_t),1,openf);
+		}
+	}
+	fseek(openf, -33*512, SEEK_END);
+	for(int i=0; i<number;i++)
+	{
+		for(int y=0; y<128; y++)
+		{
+			wr=massive[i][y];
+			fwrite(&wr, sizeof(uint32_t),1,openf);
+		}
+	}
+	fseek(openf, -512,SEEK_END);
+	for(int i=0; i<512;i++)
+	{
+		wr=gptmas[i];
+		fwrite(&gptmas,sizeof(uint32_t),1,openf);
+	}
+	return 0;
 }
 int reaD()
 {
@@ -234,4 +273,7 @@ int reaD()
 
 	gptstr[некоторое]=uint32_t crc32(massive);
 	gptstr[некот]=uint32_t crc3w(gptstr);
+	return gptstr, massive;
+}
+
 
