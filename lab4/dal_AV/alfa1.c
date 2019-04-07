@@ -199,15 +199,19 @@ void format_razdel(struct razdel *raz,int nachalo,int konec)
 	{
 		raz->typeofRazd[i]=array1[i];
 	}
-}
+	//printf("4\n");
+
+}//сойдёт
 uint32_t guid(uint32_t generate)
 {
+	//uint32_t stime1=time(NULL);
 	srand(time(NULL));
-	generate=rand();
+	/*uint32_t*/ generate=rand();
+	//printf("5\n");
 	return generate;
 }
 
-unsigned int crc32(uint32_t *message)
+unsigned int crc32(uint32_t *message)//(unsigned char *message) 
 {
 	int i, j;
 	uint32_t byte, crc, mask;
@@ -229,6 +233,7 @@ unsigned int crc32(uint32_t *message)
 }//сойдёт
 int zapis(struct form_MBR *Mbr, struct GPT *Gpt, struct razdel *Raz,uint32_t razmer, unsigned int number,uint8_t *file)//so schetom dovedi do uma
 {
+	//struct form_MBR Mbr;struct GPT Gpt; struct razdel *Raz;struct form_MBR mBr;
 	uint32_t *ptr1; uint64_t *ptr2; int openf,schet=0x1be; struct stat st; unsigned int Razmer, razmer1,razmer2;
 	openf=open(file,O_RDWR);
 	fstat(openf,&st);
