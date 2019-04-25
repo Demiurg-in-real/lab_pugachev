@@ -107,23 +107,33 @@ int main(int argc, char* argv[])
 	ptr=mmap(NULL, statistic.st_size, PROT_READ, MAP_PRIVATE,file_read, 0);
 	boot_sector=*((struct fat1216*)(ptr+0));
 	//printf("%04x\n", boot_sector.OEM);
-	go_to=boot_sector.size_sector*(/*boot_sector.num_sec_in_klust*/boot_sector.res_num_sec_in_klust+boot_sector.num_tables*boot_sector.num_sect);
-	//printf("%04x\n",go_to);
+	go_to=boot_sector.size_sector*(/*boot_sector.num_sec_in_klust*/boot_sector.res_num_sec_in_klust+boot_sector.num_tables*boot_sector.num_sect)+boot_sector.num_files_in_korn*32;
+	printf("%04x\n",go_to);
 	struct katalog katal[boot_sector.num_files_in_korn];
 	struct katalog_long_name kata[boot_sector.num_files_in_korn];
 	for (int i=0; i<=boot_sector.num_files_in_korn*32;i+=32){
-		katal[i/32]=*((struct katalog*)(ptr+go_t0+i));
+		katal[i/32]=*((struct katalog*)(ptr+go_to+i));
 		if (katal[i/32].attributes_of_file == 0x0f){
-			kata[i/32]=*((struct katalog*)(ptr+go_t0+i));
+			kata[i/32]=*((struct katalog_long_name*)(ptr+go_to+i));
 		}
 		if (katal[i/32].attributes_of_file == 0x10){
 			//attributes
 		}
-
-
-
-
+	}
 	return 0;	
+}
+
+/*void get_file()
+{
+	uint8_t *simv;
+	FILE *writ=fopen(name, "wb");
+	if(writ==NULL) break;
+	for(int i=0; i<razmer;i++)
+	{
+		simv=*((uint8_t*)(ptr+i+smesh+klust_begin));
+		fwrite(&simv, sizeof(uint8_t),1,writ);
+	}
+	fclose(writ);
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 /*
