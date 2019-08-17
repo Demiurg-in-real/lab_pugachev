@@ -47,8 +47,6 @@ int server(uint16_t port, char* src, char* dst)
 	memset(&addr,0,sizeof(struct sockaddr_in));
 	addr.sin_family = AF_INET;
 	addr.sin_port = port;
-	addr.sin_addr.s_addr = inet_addr("127.0.0.1");
-
 	if ( bind(sd, (const struct sockaddr*)&addr,
 				 sizeof(struct sockaddr_in)) ) {
 		perror("bind");
@@ -93,6 +91,7 @@ int main(int argc, char* argv[])
 		perror("fork");
 		return __LINE__;
 	}
+	printf("%d\n",port);
 	
 	return ((pid != 0)?(server):(client))(port,argv[1],argv[2]);
 }
